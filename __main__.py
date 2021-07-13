@@ -1,3 +1,5 @@
+# © 2021 t-h-rk-turner All Rights Reserved
+
 import ctypes
 import logging
 import sys
