@@ -1,4 +1,4 @@
-# © 2021 t-h-rk-turner All Rights Reserved
+# © 2021 nonimportant All Rights Reserved
 
 import ctypes
 import logging
