@@ -24,4 +24,6 @@
 - Base16
 - Url
 
+#### [See the app's license as well](https://github.com/nonimportant/text-encode-and-decoder/blob/main/LICENSE)
+
 ###### Made with Python 3.9.6 and PyQt5 5.15.4
