@@ -1,6 +1,6 @@
 # Text Encoder and Decoder
 
-### Encode and decode text in many different ways using this GUI application!
+### Encode and decode text in many ways using this GUI application!
 
 ![](application.png)
 
