@@ -13,6 +13,8 @@
 - Url
 - MD5 Hash
 - SHA-1
+- SHA-224
+- SHA-384
 - SHA-256
 - SHA-512
 
