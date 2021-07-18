@@ -29,6 +29,8 @@ def urldecode(message): return unquote(message)
 def md5encode(message): return str(hashlib.md5(message.encode()).hexdigest())
 
 def sha1encode(message): return str(hashlib.sha1(message.encode()).hexdigest())
+def sha224encode(message): return str(hashlib.sha224(message.encode()).hexdigest())
+def sha384encode(message): return str(hashlib.sha384(message.encode()).hexdigest())
 def sha256encode(message): return str(hashlib.sha256(message.encode()).hexdigest())
 def sha512encode(message): return str(hashlib.sha512(message.encode()).hexdigest())
 
@@ -43,8 +45,10 @@ encodings = {
     "md5": md5encode,
     "sha256": sha256encode,
     "sha1": sha1encode,
-    "sha512": sha512encode
-}
+    "sha512": sha512encode,
+    "sha224": sha224encode,
+    "sha384": sha384encode
+} # added 2 new encrytion methods
 
 supported_encodings = tuple(encodings.keys())
 

@@ -6,3 +6,10 @@ class Images(object):
     dark_mode = 'Icon made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>'
     light_mode = '<div>Icon made from <a href="http://www.onlinewebfonts.com/icon">Icon Fonts</a> is licensed by CC BY 3.0</div>'
 
+    all = {
+        "icons/save.png": save,
+        "icons/i.png": i,
+        "icons/open file.png": open_file,
+        "icons/dark mode.png": dark_mode,
+        "icons/light mode.png": light_mode
+    }

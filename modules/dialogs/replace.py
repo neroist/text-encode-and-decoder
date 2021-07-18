@@ -4,9 +4,11 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QLineEdit,
     QDialogButtonBox,
-    QWidget
+    QWidget,
+    QPushButton
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 
 
 class ReplaceDialog(QDialog):
@@ -15,31 +17,46 @@ class ReplaceDialog(QDialog):
         super(ReplaceDialog, self).__init__(parent)
 
         self.resize(400, 150)
-        self.setWindowTitle("Replace")
+        self.setWindowTitle(self.tr("Replace"))
 
         self.gridLayout = QGridLayout(self)
 
         self._inputwidget = inputWidget
 
-        self.withLabel = QLabel("With:", self)
-        self.gridLayout.addWidget(self.withLabel, 1, 0)
-
-        self.withLineEdit = QLineEdit(self)
-        self.gridLayout.addWidget(self.withLineEdit, 0, 1)
-
-        self.replaceLabel = QLabel("Replace:", self)
-        self.gridLayout.addWidget(self.replaceLabel, 0, 0)
+        replaceLabel = QLabel(self.tr("Replace:"), self)
+        replaceLabel.setFont(font := QFont("Segoe UI", 10))
+        self.gridLayout.addWidget(replaceLabel, 0, 0)
 
         self.replaceLineEdit = QLineEdit(self)
+        self.replaceLineEdit.setFont(font)
         self.gridLayout.addWidget(self.replaceLineEdit, 1, 1)
 
-        self.buttonBox = QDialogButtonBox(self)
-        self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
-        self.gridLayout.addWidget(self.buttonBox, 3, 1)
+        # -----------
 
-        self.buttonBox.accepted.connect(self.__replace)
-        self.buttonBox.rejected.connect(self.reject)
+        withLabel = QLabel(self.tr("With:"), self)
+        withLabel.setFont(font)
+        self.gridLayout.addWidget(withLabel, 1, 0)
+
+        self.withLineEdit = QLineEdit(self)
+        self.withLineEdit.setFont(font)
+        self.gridLayout.addWidget(self.withLineEdit, 0, 1)
+
+        # ----------- button box buttons -----------
+
+        __ok = QPushButton(self.tr("OK"), self)
+        __ok.setFont(buttonboxfont := QFont("Segoe UI"))
+
+        __cancel = QPushButton(self.tr("Cancel"), self)
+        __cancel.setFont(buttonboxfont)
+
+        buttonBox = QDialogButtonBox(self)
+        buttonBox.setOrientation(Qt.Horizontal)
+        buttonBox.addButton(__ok, QDialogButtonBox.AcceptRole)
+        buttonBox.addButton(__cancel, QDialogButtonBox.RejectRole)
+        self.gridLayout.addWidget(buttonBox, 3, 1)
+
+        buttonBox.accepted.connect(self.__replace)
+        buttonBox.rejected.connect(self.reject)
 
         self.show()
 

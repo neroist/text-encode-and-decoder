@@ -3,9 +3,11 @@ from PyQt5.QtWidgets import (
     QDialogButtonBox,
     QLineEdit,
     QLabel,
-    QVBoxLayout
+    QVBoxLayout,
+    QPushButton
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 
 from modules import stillworking
 
@@ -18,12 +20,22 @@ class FindDialog(QDialog):
         layout = QVBoxLayout(self)
 
         label = QLabel("Find:", self)
+        label.setFont(QFont("Segoe UI", 10))
         layout.addWidget(label)
 
         entry = QLineEdit(self)
+        entry.setFont(QFont("Segoe UI", 9))
         layout.addWidget(entry)
 
-        buttonbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self)
+        __k = QPushButton(self.tr("OK"), self)
+        __k.setFont(font := QFont("Segoe UI"))
+
+        __cancel = QPushButton(self.tr("Cancel"), self)
+        __cancel.setFont(font)
+
+        buttonbox = QDialogButtonBox(Qt.Horizontal, self)
+        buttonbox.addButton(__k, QDialogButtonBox.AcceptRole)
+        buttonbox.addButton(__cancel, QDialogButtonBox.RejectRole)
         buttonbox.accepted.connect(self.__find_and_highlight)
         buttonbox.rejected.connect(self.reject)
         layout.addWidget(buttonbox)
