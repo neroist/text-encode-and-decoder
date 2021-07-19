@@ -16,8 +16,10 @@ class ReplaceDialog(QDialog):
     def __init__(self, inputWidget: QWidget, parent=None) -> None:
         super(ReplaceDialog, self).__init__(parent)
 
-        self.resize(400, 150)
         self.setWindowTitle(self.tr("Replace"))
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+        self.resize(400, 150)
+
 
         self.gridLayout = QGridLayout(self)
 

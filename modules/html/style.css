@@ -1,0 +1,16 @@
+* {
+    font-family: "Segoe UI";
+    color: lightgrey;
+}
+
+hr {
+    color: silver;
+}
+
+body {
+    background-color: #323232;
+}
+
+a {
+    color: rgb(159, 98, 222); /*0 98 255*/
+}

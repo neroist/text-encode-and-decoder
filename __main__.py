@@ -2,17 +2,26 @@ import ctypes
 import logging
 import sys
 import colorlog
+import clipboard
+import requests
+import datetime
 
 from PyQt5.QtCore import (
+    Qt,
+    QTimer,
     QSize,
     QRect,
-    QThread
+    QTime,
+    QMetaObject
 )
 from PyQt5.QtGui import (
     QFont,
     QIcon,
     QGuiApplication,
-    QKeySequence
+    QKeySequence,
+    QCloseEvent,
+    QDropEvent,
+    QDragEnterEvent
 )
 from PyQt5.QtWidgets import (
     QPushButton,
@@ -37,53 +46,13 @@ from modules import conversions
 from modules.dialogs.replace import ReplaceDialog
 from modules.dialogs.web import WebDialog
 from modules.dialogs.find import FindDialog
+from modules.dialogs.credits import CreditsDialog
+from modules.dialogs.about import AboutDialog
 from modules.stillworking import stillworking
-
 
 # global variables
 with open("stylesheets/main.qss") as f:
     stylesheet = f.read()
-
-# ----- functions -----
-def decode(method: str, text: str) -> str:
-    """
-    Decode string by given method. Supported methods are: ascii85, base85, base64, base32, base16, and url.
-
-    :param method: Method to decode text
-    :param text: Text to decode
-    :return: Decoded version of text
-    """
-
-    if text is None:
-        return ""
-
-    try:
-        return conversions.decodings[method.lower().replace("-", '')](text)
-    except Exception as err:
-        logger.error(f'Ran into error encoding "{text}" through decryption method "{method}". Error: {err}')
-
-
-def encode(method: str, text: str):
-    """
-    Encode string by given method. Supported methods are: ascii85, base85, base64, base32, base16, url, md5 hash, sha1,
-    sha256, and sha512.
-
-    :param method: Method to encode text
-    :param text: Text to encode
-    :return: Decoded version of text
-    """
-
-    if text is None:
-        return ""
-
-    if method == "MD5 hash":
-        method = method.split(" ")[0]
-
-    try:
-        return conversions.encodings[method.lower().replace("-", '')](text)
-    except Exception as err:
-        logger.error(f'Ran into error decoding "{text}" through encryption method "{method}". Error: {err}')
-
 
 # ----- logging setup -----
 MISC = 1
@@ -99,16 +68,26 @@ log_colors = {
 }
 
 formatter = colorlog.ColoredFormatter(
-    fmt="%(log_color)s%(name)s [level %(levelno)s %(levelname)s %(asctime)s, line %(lineno)s] %(message)s",
-    datefmt="%m/%d/%Y %I:%M:%S %p",
+    fmt=f"%(log_color)s%(name)s [level %(levelno)s %(levelname)s %(asctime)s.%(msecs)d {datetime.datetime.now().strftime('%p')}, line %(lineno)s in %(filename)s | Thread %(threadName)s %(thread)d Process %(processName)s %(process)d] %(message)s",
+    datefmt="%Y/%m/%d %I:%M:%S",
     log_colors=log_colors
+)
+
+file_formatter = logging.Formatter(
+    fmt=f"%(name)s [level %(levelno)s %(levelname)s %(asctime)s.%(msecs)d {datetime.datetime.now().strftime('%p')}, line %(lineno)s in %(filename)s | Thread %(threadName)s %(thread)d Process %(processName)s %(process)d] %(message)s",
+    datefmt="%Y/%m/%d %I:%M:%S"
 )
 
 handler = logging.StreamHandler(stream=sys.stdout)
 handler.setFormatter(formatter)
 handler.setLevel(MISC)
 
+file_handler = logging.FileHandler("main.log")
+file_handler.setFormatter(file_formatter)
+file_handler.setLevel(logging.DEBUG)
+
 logger.addHandler(handler)
+logger.addHandler(file_handler)
 logging.addLevelName(MISC, 'MISC')
 logger.setLevel(MISC)
 
@@ -121,6 +100,7 @@ class ConverterApplication(QMainWindow):
         # prev font "MS Shell Dlg 2"
 
         tr = self.tr
+
 
         self.setGeometry(QRect(625, 350, 650, 600))
         self.setMinimumSize(QSize(650, 550))
@@ -144,7 +124,9 @@ class ConverterApplication(QMainWindow):
         self.methodComboBox.addItem(tr("Url"))
         self.methodComboBox.addItem(tr("MD5 hash"))
         self.methodComboBox.addItem(tr("SHA-1"))
+        self.methodComboBox.addItem(tr("SHA-224"))
         self.methodComboBox.addItem(tr("SHA-256"))
+        self.methodComboBox.addItem(tr("SHA-384"))
         self.methodComboBox.addItem(tr("SHA-512"))
         self.methodComboBox.setMaxVisibleItems(4)
         self.methodComboBox.setCurrentIndex(2)
@@ -160,6 +142,8 @@ class ConverterApplication(QMainWindow):
         self.inputTextEdit = QPlainTextEdit(self.__widget)
         self.inputTextEdit.setFont(QFont(u"Segoe UI", 12))
         self.inputTextEdit.setAcceptDrops(True)
+        self.inputTextEdit.dragEnterEvent = self.onPlainTextEditDragEnter
+        self.inputTextEdit.dropEvent = self.onPlainTextEditDrop
         self.gridLayout.addWidget(self.inputTextEdit, 1, 0, 1, 2)
 
         # ----- buttons -----
@@ -198,7 +182,7 @@ class ConverterApplication(QMainWindow):
         _copy = QAction(tr("&Copy"), self)
         _copy.setShortcut(u"Alt+C")
         _copy.setStatusTip(tr("Copy output text."))
-        _copy.triggered.connect(lambda: self.__copy_text)
+        _copy.triggered.connect(self.__copy_text)
 
         _paste = QAction(tr("&Paste"), self)
         _paste.setShortcut(u"Alt+V")
@@ -210,6 +194,10 @@ class ConverterApplication(QMainWindow):
         _cut.setShortcut(u"Alt+X")
         _cut.setStatusTip(tr("Cut (delete and copy) all text from the input text edit."))
         _cut.triggered.connect(self.__cut_text)
+
+        _delete = QAction(tr("&Delete"), self)
+        _delete.setStatusTip("")
+        _delete.triggered.connect(lambda: self.inputTextEdit.setPlainText(""))
 
         #find and replace submenu actions
         _find = QAction(tr("&Find"), self)
@@ -223,15 +211,15 @@ class ConverterApplication(QMainWindow):
         _aboutqt = QAction(tr("About Qt"), self)
         _aboutqt.triggered.connect(lambda: QMessageBox.aboutQt(self, u"About Qt"))
 
-
-
+        #help menu
         _credits = QAction(tr("Credits"), self)
-        _credits.triggered.connect(lambda: stillworking(parent=self))
+        _credits.triggered.connect(CreditsDialog(self).show)
         
         _about = QAction(tr("About"), self)
+        _about.triggered.connect(AboutDialog(self).show) # added the message bc it didnt have it before
+
 
         # ----- toolbar actions -----
-
         # windowbar actions
         self._fullscreen = QAction(QIcon("icons/full screen.png"), "", self)
         self._fullscreen.setStatusTip(tr("Enter full screen."))
@@ -264,7 +252,6 @@ class ConverterApplication(QMainWindow):
         _save.setStatusTip(tr("Save the output's content to a text file."))
         _save.triggered.connect(self.__save_file_dialogue)
 
-
         # externalbar actions
         _web = QAction(QIcon("icons/web.png"), "", self)
         _web.setToolTip(tr("Shortcut: Ctrl + Alt + W"))
@@ -277,21 +264,23 @@ class ConverterApplication(QMainWindow):
         _speak.setShortcuts((QKeySequence(u"Ctrl+M"), QKeySequence(u"Alt+S")))
         _speak.triggered.connect(lambda: stillworking(parent=self))
 
+
         # ----- menus -----
         editmenu = self.menuBar().addMenu(tr("&Edit"))
         helpmenu = self.menuBar().addMenu(QIcon(u"icons/i.jpg"), tr("&Help"))
-
         fnr = QMenu(tr("Find and Replace"), self)
-        fnr.setFont(QFont("Segoe UI", 9))
-        fnr.addActions((_find, _replace))
 
-        editmenu.addActions((_copy, _paste, _cut))
+        fnr.addActions((_find, _replace))
+        fnr.setFont(QFont("Segoe UI", 9))
+
+        editmenu.addActions((_copy, _paste, _cut, _delete))
         editmenu.setFont(QFont("Segoe UI", 9))
         editmenu.addSeparator()
         editmenu.addMenu(fnr)
 
         helpmenu.addActions((_aboutqt, _credits, _about))
         helpmenu.setFont(QFont("Segoe UI", 9))
+
 
         # ----- toolbar(s) -----
         windowbar = self.addToolBar(tr("Window Options"))
@@ -302,51 +291,148 @@ class ConverterApplication(QMainWindow):
         windowbar.addActions((_exit, self._fullscreen, self._home))
         externalbar.addActions((_web, _speak))
 
+
         # ----- statusbar -----
         statusbar = QStatusBar(self)
         statusbar.setSizeGripEnabled(False)  # disable size grip, size grip icon is broken.
         statusbar.setFont(QFont("Segoe UI", 9))
-        statusbar.showMessage("© nonimportant All Rights Reserved")
+        statusbar.showMessage('© nonimportant. All Rights Reserved.')
+
+        statusbar.addPermanentWidget(label := QLabel(tr(QTime.currentTime().toString(Qt.DefaultLocaleLongDate)) + '  '))
+        label.setStyleSheet('QLabel {background-color: transparent; font-family: "Segoe UI"}')
+        label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+        timer = QTimer(self)
+        timer.timeout.connect(lambda: label.setText(tr(QTime.currentTime().toString(Qt.DefaultLocaleLongDate)) + '  '))
+        timer.start(1 * 1000)
+
+        # new clock in status bar
 
         self.setStatusBar(statusbar)
 
         # ----- window setup -----
+        QMetaObject.connectSlotsByName(self)
         self.setCentralWidget(self.__widget)
         self.show()
 
-    def encodeUserText(self):
-        a = encode(b := self.methodComboBox.currentText(), c := self.inputTextEdit.toPlainText())
-        logger.debug(f'Attempted to encode "{c}" by {b}. Result: {a}')
+    @staticmethod
+    def decode(method: str, text: str) -> str:
+        """
+        Decode string by given method. Supported methods are: ascii85, base85, base64, base32, base16, and url.
+
+        :param method: Method to decode text
+        :param text: Text to decode
+        :return: Decoded version of text
+        """
+
+        if text is not None:
+            try:
+                return conversions.decodings[method.lower().replace("-", '')](text)
+            except Exception as err:
+                logger.critical(
+                    crittxt := f'Ran into error encoding "{text}" through decryption method "{method}". Error: {err}')
+                QMessageBox.critical(None, "Error", crittxt)
+
+        return ""
+
+    @staticmethod
+    def encode(method: str, text: str) -> str:
+        """
+        Encode string by given method. Supported methods are: ascii85, base85, base64, base32, base16, url, md5 hash, sha1,
+        sha256, and sha512.
+
+        :param method: Method to encode text
+        :param text: Text to encode
+        :return: Decoded version of text
+        """
+
+        if text is not None:
+            if method == "MD5 hash":
+                method = method.split(" ")[0]
+
+            try:
+                return conversions.encodings[method.lower().replace("-", '')](text)
+            except Exception as err:
+                logger.critical(
+                    crittxt := f'Ran into error encoding"{text}" through encryption method "{method}". Error: {err}')
+                QMessageBox.critical(None, "Error", crittxt)
+
+        return ""
+
+    def encodeUserText(self) -> None:
+        a = self.encode(b := self.methodComboBox.currentText(), c := self.inputTextEdit.toPlainText())
+        logger.debug(f'Attempted to encode "{c}" by {b}. Result: "{a}"')
 
         self.outputTextEdit.setPlainText(a)
 
-    def decodeUserText(self):
-        a = decode(b := self.methodComboBox.currentText(), c := self.inputTextEdit.toPlainText())
-        logger.debug(f'Attempted to decode "{c}" by {b}. Result: {a}')
+    def decodeUserText(self) -> None:
+        a = self.decode(b := self.methodComboBox.currentText(), c := self.inputTextEdit.toPlainText())
+        logger.debug(f'Attempted to decode "{c}" by {b}. Result: "{a}"')
 
         self.outputTextEdit.setPlainText(a)
 
-    def onComboBoxItemSelect(self, index: int):
+    def onComboBoxItemSelect(self, index: int) -> None:
         # self.methodComboBox.itemText(<index>)
         logger.log(MISC, f'Method "{self.methodComboBox.itemText(index)}" has been selected.')
 
-        if self.methodComboBox.itemText(index).lower() == "MD5 hash":
+        if (
+                self.methodComboBox.itemText(index).lower() == "md5 hash"
+                or
+                "SHA" in self.methodComboBox.itemText(index)
+        ):
             self.decryptButton.setEnabled(False)
         else:
             if not self.decryptButton.isEnabled():
                 self.decryptButton.setEnabled(True)
 
-    def __copy_text(self):
+    def onPlainTextEditDragEnter(self, event: QDragEnterEvent):
+        if (not event.mimeData().hasUrls()) and (not event.mimeData().hasText()):
+            event.ignore()
+        else:
+            event.accept()
+
+    def onPlainTextEditDrop(self, event: QDropEvent):
+        logger.debug("Plain Text edit drop")
+        data = event.mimeData()
+
+        if data.hasUrls():
+            for i in data.urls():
+                if i.toLocalFile() == '': # if a blank string, is a website URL
+                    try:
+                        get = requests.get(i.toString())
+                    except Exception as err:
+                        logger.error(f"Ran into error dropping website URL in the input plain text edit. Error: {err}")
+                    else:
+                        self.inputTextEdit.setPlainText(get.text)
+                        event.accept()
+                else:
+                    try:
+                        with open(i.toLocalFile()) as file:
+                            if file.readable():
+                                self.inputTextEdit.appendPlainText(file.read())
+                                event.accept()
+                            else:
+                                logger.warning(f"Unreadable file/folder: {i.toLocalFile()}")
+                                return
+                    except Exception as err:
+                        logger.error(f"Error encountered while opening file/folder {i.toLocalFile()}. Error: {err}")
+                        QMessageBox.critical(self, "File/Folder Error", f"An error was encountered while opening file/folder {i.toLocalFile()}. Error: {err}")
+        elif data.hasText():
+            self.inputTextEdit.appendPlainText(data.text())
+            event.accept()
+
+    def __copy_text(self) -> None:
         try:
-            QGuiApplication.clipboard().setText(self.outputTextEdit.toPlainText())
+            clipboard.copy(x:=self.outputTextEdit.toPlainText())
+            print(x)
         except Exception as err:
             logger.error(f"An error was encountered while setting clipboard text. Error: {err}")
 
-    def __cut_text(self):
-        QGuiApplication.clipboard().setText(self.inputTextEdit.toPlainText())
+    def __cut_text(self) -> None:
+        clipboard.copy(self.outputTextEdit.toPlainText())
         self.inputTextEdit.setPlainText("")
 
-    def __open_file_dialogue(self):
+    def __open_file_dialogue(self) -> None:
         file, _ = QFileDialog.getOpenFileName(
             self,
             self.tr("Open File"),
@@ -363,7 +449,7 @@ class ConverterApplication(QMainWindow):
         else:
             return
 
-    def __save_file_dialogue(self):
+    def __save_file_dialogue(self) -> None:
         file, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save File As"),
@@ -394,13 +480,17 @@ class ConverterApplication(QMainWindow):
             self._fullscreen.setStatusTip(tr("Exit full screen"))
             self._fullscreen.setToolTip(tr("Shortcut: Esc"))
             self._home.setDisabled(True)
+            
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        logger.info("Application closed.")
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
+    app.setQuitOnLastWindowClosed(True)
 
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("{}")
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(f"{__name__}")
     # setting the AppUserModelID so our window icon also is our taskbar icon.
     # the AppUserModelID string has to be unicode as well.
     # info from https://stackoverflow.com/questions/1551605/how-to-set-applications-taskbar-icon-in-windows-7
@@ -409,3 +499,4 @@ if __name__ == "__main__":
     logger.info("Application started.")
 
     sys.exit(app.exec_())
+    input("")

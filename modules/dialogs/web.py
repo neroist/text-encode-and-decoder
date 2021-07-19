@@ -19,6 +19,7 @@ class WebDialog(QDialog):
         super(WebDialog, self).__init__(parent)
 
         self.setWindowTitle("Enter Website URL")
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self.resize(500, 100)
         self.setMinimumSize(225, 100)
         self.setMaximumSize(500, 100)
