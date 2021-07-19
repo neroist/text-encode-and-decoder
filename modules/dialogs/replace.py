@@ -20,7 +20,6 @@ class ReplaceDialog(QDialog):
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self.resize(400, 150)
 
-
         self.gridLayout = QGridLayout(self)
 
         self._inputwidget = inputWidget

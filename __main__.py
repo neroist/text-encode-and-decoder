@@ -216,7 +216,7 @@ class ConverterApplication(QMainWindow):
         _credits.triggered.connect(CreditsDialog(self).show)
         
         _about = QAction(tr("About"), self)
-        _about.triggered.connect(AboutDialog(self).show) # added the message bc it didnt have it before
+        _about.triggered.connect(AboutDialog(self).show)
 
 
         # ----- toolbar actions -----

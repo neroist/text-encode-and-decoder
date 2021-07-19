@@ -42,6 +42,5 @@ class FindDialog(QDialog):
         layout.addWidget(buttonbox)
 
     def __find_and_highlight(self):
-        stillworking(parent=self)
+        stillworking.stillworking(parent=self)
         self.accept()
-

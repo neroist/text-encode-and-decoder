@@ -50,3 +50,23 @@ __main__ [level 20 INFO 2021/07/19 03:02:40.761 AM, line 499 in __main__.py | Th
 __main__ [level 20 INFO 2021/07/19 03:04:18.936 AM, line 485 in __main__.py | Thread MainThread 29392 Process MainProcess 10540] Application closed.
 __main__ [level 20 INFO 2021/07/19 03:08:47.4 AM, line 499 in __main__.py | Thread MainThread 9064 Process MainProcess 11476] Application started.
 __main__ [level 20 INFO 2021/07/19 03:09:01.197 AM, line 485 in __main__.py | Thread MainThread 9064 Process MainProcess 11476] Application closed.
+__main__ [level 20 INFO 2021/07/19 03:10:57.295 AM, line 499 in __main__.py | Thread MainThread 25332 Process MainProcess 21596] Application started.
+__main__ [level 10 DEBUG 2021/07/19 03:11:29.688 AM, line 364 in __main__.py | Thread MainThread 25332 Process MainProcess 21596] Attempted to encode "PyQt5==5.15.4
+colorlog>=5.0.1
+requests>=2.25.1
+clipboard>=0.0.4
+Markdown>=3.3.4" by Base64. Result: "UHlRdDU9PTUuMTUuNApjb2xvcmxvZz49NS4wLjEKcmVxdWVzdHM+PTIuMjUuMQpjbGlwYm9hcmQ+PTAuMC40Ck1hcmtkb3duPj0zLjMuNA=="
+__main__ [level 20 INFO 2021/07/19 03:12:11.958 AM, line 499 in __main__.py | Thread MainThread 21452 Process MainProcess 29616] Application started.
+__main__ [level 20 INFO 2021/07/19 03:12:37.999 AM, line 499 in __main__.py | Thread MainThread 23228 Process MainProcess 16088] Application started.
+__main__ [level 20 INFO 2021/07/19 03:13:05.113 AM, line 499 in __main__.py | Thread MainThread 13920 Process MainProcess 4388] Application started.
+__main__ [level 20 INFO 2021/07/19 03:13:32.709 AM, line 485 in __main__.py | Thread MainThread 13920 Process MainProcess 4388] Application closed.
+__main__ [level 20 INFO 2021/07/19 03:15:10.171 AM, line 499 in __main__.py | Thread MainThread 22396 Process MainProcess 24808] Application started.
+__main__ [level 20 INFO 2021/07/19 03:15:38.767 AM, line 485 in __main__.py | Thread MainThread 22396 Process MainProcess 24808] Application closed.
+__main__ [level 20 INFO 2021/07/19 03:23:57.659 AM, line 499 in __main__.py | Thread MainThread 22860 Process MainProcess 29236] Application started.
+__main__ [level 20 INFO 2021/07/19 03:24:15.251 AM, line 485 in __main__.py | Thread MainThread 22860 Process MainProcess 29236] Application closed.
+__main__ [level 20 INFO 2021/07/19 03:26:12.547 AM, line 499 in __main__.py | Thread MainThread 7740 Process MainProcess 10228] Application started.
+__main__ [level 20 INFO 2021/07/19 03:26:19.235 AM, line 485 in __main__.py | Thread MainThread 7740 Process MainProcess 10228] Application closed.
+__main__ [level 20 INFO 2021/07/19 03:34:13.986 AM, line 499 in __main__.py | Thread MainThread 22876 Process MainProcess 14780] Application started.
+__main__ [level 20 INFO 2021/07/19 03:34:27.787 AM, line 485 in __main__.py | Thread MainThread 22876 Process MainProcess 14780] Application closed.
+__main__ [level 20 INFO 2021/07/19 03:36:48.437 AM, line 499 in __main__.py | Thread MainThread 3104 Process MainProcess 28296] Application started.
+__main__ [level 20 INFO 2021/07/19 03:37:02.764 AM, line 485 in __main__.py | Thread MainThread 3104 Process MainProcess 28296] Application closed.
