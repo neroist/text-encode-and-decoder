@@ -24,7 +24,7 @@ class WebDialog(QDialog):
         self.setMinimumSize(225, 100)
         self.setMaximumSize(500, 100)
 
-        self.inputwidget = inputWidget
+        self.input_widget = inputWidget
 
         layout = QVBoxLayout(self)
 
@@ -56,63 +56,65 @@ class WebDialog(QDialog):
             get = requests.get(url)
             get.raise_for_status()
 
-        except ConnectionError as err:
-            a = QMessageBox.critical(
+        except ConnectionError:
+            QMessageBox.critical(
                 self,
                 "Connection Error",
-                "There was an error connecting to the URL/URN provided.",
+                "There was an error connecting to the website URL/URN provided.",
                 QMessageBox.Ok
             )
 
-            return None
+            return
 
         except InvalidURL:
-            a = QMessageBox.critical(
+            QMessageBox.critical(
                 self,
                 "Invalid URL/URN",
-                "The URL or URN provided was invalid.",
+                "The website URL or URN provided was invalid.",
                 QMessageBox.Ok
             )
 
-            return None
+            return
 
         except MissingSchema as err:
-            a = QMessageBox.critical(
+            QMessageBox.critical(
                 self,
                 "Missing Schema",
                 err.__doc__,
                 QMessageBox.Ok
             )
 
-            return None
+            return
 
-        except InvalidSchema as err:
-            a = QMessageBox.critical(
+        except InvalidSchema:
+            QMessageBox.critical(
                 self,
                 "Invalid Schema",
                 f"The \"website\" {self.website.text} has an invalid schema.",
                 QMessageBox.Ok
             )
 
-            return None
+            return
 
         except HTTPError as err:
-            a = QMessageBox.critical(
+            QMessageBox.critical(
                 self,
                 "HTTP Error",
                 f"{err.__doc__}\n{str(err)}",
                 QMessageBox.Ok
             )
 
-            return None
+            return
 
         except Exception as err:
-            a = QMessageBox.critical(
+            QMessageBox.critical(
                 self,
                 "Error",
                 err.__doc__,
                 QMessageBox.Ok
             )
+
+            return
 
         return get.text
 
@@ -127,7 +129,7 @@ class WebDialog(QDialog):
             if txt is None:
                 return
         else:
-            self.inputwidget.appendPlainText(txt)
+            self.input_widget.appendPlainText(txt)
             self.accept()
 
 # supports urns as well as urls

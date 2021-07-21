@@ -2,7 +2,7 @@
 from https://www.pythonguis.com/faq/qwebengineview-open-links-new-window/
 """
 
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEnginePage
 from PyQt5.QtGui import QDesktopServices
 
 class CustomWebEnginePage(QWebEnginePage):
